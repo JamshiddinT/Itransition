@@ -49,30 +49,34 @@ class Game:
     def __init__(self, moves):
         self.moves = [Move(move) for move in moves]
         self.rulebook = RuleBook([move.name for move in self.moves])
-        self.key = self.generate_crypto_key()
 
     def generate_crypto_key(self):
         key = ''.join(random.choice('0123456789ABCDEF') for _ in range(64))
         return key
 
-    def calculate_hmac(self, message):
-        key = bytes.fromhex(self.key)
+    def calculate_hmac(self, message, key):
+        key = bytes.fromhex(key)
         message_bytes = message.encode('utf-8')
         hmac = hashlib.sha256(key + message_bytes).hexdigest()
         return hmac
 
     def display_help_menu(self):
-        print("\nMenu:")
+        print("\nAvailable moves:")
         for i, move in enumerate(self.moves, start=1):
             print(f"{i} - {move.name}")
         print("h - Help")
         print("0 - Exit")
 
     def start_game(self):
-        print(f"Generated Key: {self.key}")
+        hmac_key = self.generate_crypto_key()
+
+
         while True:
+            computer_move = random.choice(self.moves)
+            hmac_computer = self.calculate_hmac(computer_move.name, hmac_key)
+            print(f"HMAC: {hmac_computer}")
             self.display_help_menu()
-            choice = input("Make your choice: ")
+            choice = input("Enter your move: ")
 
             if choice == '0':
                 break
@@ -84,12 +88,9 @@ class Game:
                 choice = int(choice)
                 if 1 <= choice <= len(self.moves):
                     user_move = self.moves[choice - 1]
-                    computer_move = random.choice(self.moves)
-                    hmac = self.calculate_hmac(user_move.name)
 
                     print(f"Your move: {user_move.name}")
                     print(f"Computer's move: {computer_move.name}")
-                    print(f"Original Key: {self.key}")
 
                     if computer_move.name in self.rulebook.rules[user_move.name][1]:
                         print("You Win!")
@@ -97,7 +98,7 @@ class Game:
                         print("Computer Wins!")
                     else:
                         print("It's a Draw!")
-                    print(f"HMAC: {hmac}")
+                    print(f"HMAC key: {hmac_key}")
                 else:
                     print("Invalid choice. Please choose a valid option.")
             except ValueError:
