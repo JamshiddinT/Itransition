@@ -68,10 +68,9 @@ class Game:
         print("0 - Exit")
 
     def start_game(self):
-        hmac_key = self.generate_crypto_key()
-
-
+        
         while True:
+            hmac_key = self.generate_crypto_key()
             computer_move = random.choice(self.moves)
             hmac_computer = self.calculate_hmac(computer_move.name, hmac_key)
             print(f"HMAC: {hmac_computer}")
